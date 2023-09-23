@@ -30,7 +30,6 @@ def scrape_base_page(url: str) -> Dict:
     return_object = {}
 
     return_object['title'] = soup.title.string
-    return_object['domain'] = url.split("/")[2]
     return_object['contents'] = []
     return_object['links'] = _get_links(soup, url)
 
