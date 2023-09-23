@@ -1,13 +1,13 @@
 import './App.css'
 import {
-  createHashRouter,
+  createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
 import Login from './routes/Login';
 import Search from './routes/Search';
 
 function App() {
-  const router = createHashRouter([
+  const router = createBrowerRouter([
     {
       path: "/",
       element: <Login />,
