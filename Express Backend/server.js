@@ -1,79 +1,92 @@
 const express = require('express');
+const axios = require('axios');
 const app = express();
 const port = 5000;
 
+// const usersRouter = require('./routes/users');
+
+//Default Gateway
 app.get('/', (req, res) =>
 {
     res.send("HackMidWest");
 });
 
-app.get('/api/search', async (req, res) =>
+//Called from front end
+app.post('/search', async (req, res) =>
 {
-
-    const url = req.query.url;
-    //URL can be blank.
+    const baseURL = req.query.baseURL;
     const query = req.query.query;
-    if(url) { // URL was given send to Webscraper.
 
-        //Check if the url exists within the Database.
+    if(!baseURL || !query)
+    {
+        return res.status(400).json({error: 'Domain and query are required parameters.'});
+    }
+
+    //Add new pending entry to Job status cache
+    //Map PK = domain
+    //  values = {
+     /*
+        status: pending,
+        message: DEFAULT_MESSAGE,
+        content: "",
+        update_time: TIME
+    }
+     */
+
+//Call Embed MS to see if data already exists.
+        //GET /search/{domain}
+        //Response
+        //if not In database
+        //send to scraper MS
         try{
-            const data = await checkDatabase(url);
-
-            //If the Data does not exist send to webscraper.
-            if(!data)
-            {
-                //Returns the location of where it is stored.
-                const res = await scrapeContent(url);
-
-                //Send that location to the Embed 
-               
-
-
-            }
-
+           const data = await scrapeContent(baseURL);
+           if(data.status != '200')
+           {
+                return res.status(data.status).json({error: `Web Scraper returned ${data.status}`});
+           }
         }
-        catch(error)
-        {
-            console.error(error);
-            res.status(500).json({error: 'An error occurred while check the Database.'});
+        catch(error){
+            console.log(error);
         }
-        console.log("Send to Webscraper");
-    }
-    else{ //Searching the entire Database with No set DOCs.
+        //POST /scaper/{domain}
         //
-        console.log("Search Database.");
-    }
 
-    res.send("HackMidWest api");
+    return res.status(200);
 });
 
-async function checkDatabase(url){
-
-    try
-    {
-        
-    }
-    catch(error)
-    {
-        throw error;
-    }
-
-}
-
-async function scarpeContent(url){
-    try{
-
-    }
-    catch(error)
-    {
-        throw error;
-    }
-}
-
-async function putInDatabase(data)
+app.get('/getUpdate', async (req, res) =>
 {
+    const baseURL = req.query.baseURL;
 
+    //return map.get(domain);
+});
+
+app.put('/update', async (req, res) =>
+{
+    const baseURL = req.query.baseURL;
+    const content = req.query.content;
+    //verify map integrity.
+
+    //Store the update into the object.
+
+
+    return res.status(200);
+});
+
+async function scrapeContent(baseURL){
+    try{
+        const response = await axios.post(`http://192.168.199.42:8000/web-scraper`, 
+        {
+            'url': `${baseURL}`
+        });
+        return response.status;
+    }
+    catch(error)
+    {
+        throw error;
+    }
 }
+
 
 app.listen(port, ()=>
 {
