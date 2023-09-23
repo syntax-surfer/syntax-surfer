@@ -7,7 +7,7 @@ import Login from './routes/Login';
 import Search from './routes/Search';
 
 function App() {
-  const router = createBrowerRouter([
+  const router = createBrowserRouter([
     {
       path: "/",
       element: <Login />,
