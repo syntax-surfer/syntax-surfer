@@ -1,9 +1,9 @@
 const express = require('express');
 const axios = require('axios');
+const bodyParser = require('body-parser');
 const app = express();
 const port = 5000;
-
-// const usersRouter = require('./routes/users');
+app.use(bodyParser.json());
 
 //Default Gateway
 app.get('/', (req, res) =>
@@ -63,14 +63,29 @@ app.get('/getUpdate', async (req, res) =>
 
 app.put('/update', async (req, res) =>
 {
-    const baseURL = req.query.baseURL;
-    const content = req.query.content;
-    //verify map integrity.
+    if (req.get('Content-Type') !== 'application/json') {
+        return res.status(400).json({ error: 'Request must have "Content-Type: application/json" header.' });
+    }
+    
+    const requestBody = req.body;
 
-    //Store the update into the object.
+    if (typeof requestBody !== 'object' || Array.isArray(requestBody)) {
+        return res.status(400).json({ error: 'Invalid JSON format. Request body must be an object.' });
+    }
+    
+    const requiredProperties = ['base_url', 'status', 'message', 'context'];
+
+    for (const prop of requiredProperties) { //Ensure Request has the correct properties.
+        if (!(prop in requestBody)) {
+            return res.status(400).json({ error: `Missing property: "${prop}"` });
+        }
+    }
+
+    //Take Data from Embed or scaper and update MAP.
 
 
-    return res.status(200);
+    
+    res.status(200).json({ message: 'Update successful' });
 });
 
 async function scrapeContent(baseURL){
