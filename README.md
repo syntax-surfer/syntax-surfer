@@ -31,3 +31,6 @@ Syntax Surfer is a search engine with the intent of helping developers search th
 - [ ]  College Challenge (only for teams of up to 5 CS students from the same school)
 
 <br /><br />
+
+Data Flow and Sequence
+![alt text](https://github.com/syntax-surfer/syntax-surfer/blob/master/SyntaxSurferDataFlow.jpg?raw=true)
