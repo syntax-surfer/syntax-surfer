@@ -42,7 +42,7 @@ def _get_links(soup: BeautifulSoup, url: str) -> List:
 
     for link in soup.find_all("a"):
         if link.get("href") is not None:
-            if not (link.get("href").startswith("http") or "/en/" in link.get("href")):
+            if not (link.get("href").startswith("http")):
                 links.append(link.get("href"))
 
     return links
