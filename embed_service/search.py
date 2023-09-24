@@ -2,7 +2,6 @@ import os
 import pinecone
 import json
 import util as util
-from typing import Union
 from fastapi import FastAPI, Response, status
 
 # Init FastAPI
