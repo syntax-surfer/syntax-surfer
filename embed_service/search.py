@@ -19,8 +19,8 @@ def read_root():
     return {"Hello! Embed Search is running!"}
 
 
-@app.get("/check/{base_url}", status_code=200)
-def check_index(base_url: str, response: Response):
+@app.get("/check/", status_code=200)
+def check_index(base_url: str = "", response: Response = status.HTTP_200_OK):
     results = pinecone_index.query(
         vector=util.template_vector(),
         filter={
