@@ -3,12 +3,11 @@
 <br /><br />
 
 ## Who's on your team?
-*List the full names,  email address & Github username of your teammates*
 
-1.   Scott Delozier  ||   || 
-2.   Michael French  ||   || 
-3.   Cody Schaefer   ||   || 
-4.   Drew Huniak     ||   || 
+1.   Scott Delozier  || delozier.scotty@gmail.com   || sdelozi
+2.   Michael French  || michael.x.french@gmail.com  || frenchytheasian
+3.   Cody Schaefer   || codyschaefer22@gmail.com    || CodyScha
+4.   Drew Huniak     || drewnhuniak@gmail.com       || DrewHuniak
 5.   Morgan Jackson  || morgan.b.jackson7@gmail.com || mbjackson7
 
 <br /><br />
