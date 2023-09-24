@@ -9,7 +9,6 @@ const port = 5000;
 
 const cors = require('cors');
 app.use(bodyParser.json());
-const map = new Map();
 
 ACCESS_KEY = process.env.accessKeyId;
 SECRET_ACCESS_KEY = process.env.secretAccessKey;
@@ -65,19 +64,15 @@ app.post('/search', async (req, res) =>
 
 
     const statusCode = await checkDatabase(query, baseURL);
-    console.log('Check database status code: ' + statusCode);
     if(statusCode === 200) //Already in Database.
     {
-        console.log("DB already has this URL");
         startEmbed(query, baseURL, jobId, res);
         return res.status(200).json({jobId: `${jobId}`});
     }
 
     //Need to webscrape the data.
     try {
-        console.log("Sending to webscraper");
         const data = await scrapeContent(baseURL, jobId);
-        console.log(data);
         if(data !== 200)
         {
             return res.status(data).json({error: `Web Scraper returned ${data}`});
@@ -99,7 +94,6 @@ app.get('/checkDocumentStatus', async (req, res) =>
     }
 
     var result = await queryDynamoDB(jobId,res);
-    console.log(result);
     return res.status(200).json(result);
 });
 
@@ -125,8 +119,6 @@ app.put('/update', async (req, res) =>
     }
     const jobId = requestBody.jobId;
     const oldBody = await queryDynamoDB(jobId,res);
-    console.log(oldBody.query);
-    console.log(oldBody.base_url);
     try{
         const newBody = {
             'base_url': `${oldBody.base_url}`,
@@ -139,10 +131,7 @@ app.put('/update', async (req, res) =>
         await updateDynamoDB(jobId, newBody, res);
         if(requestBody.origin === 'embed')
         {
-            console.log("Embed ready, sending data over to cody");
-            await startEmbed(newBody.query, newBody.base_url, jobId, res);
-            
-            
+            startEmbed(newBody.query, newBody.base_url, jobId, res);
         }
     }
     catch(error)
@@ -187,7 +176,6 @@ async function startEmbed(query, url, jobId, res)
     try
     {
         const response = await axios.post(endpoint);
-        console.log(response.data);
         const newBody = {
             'base_url': `${url}`,
             'query': `${query}`,
@@ -197,6 +185,7 @@ async function startEmbed(query, url, jobId, res)
             'content': `${response.data}`,
         };
         await updateDynamoDB(jobId, newBody, res);
+        return res.status(200).json({status:"success"});
     }   
     catch(error)
     {
@@ -218,22 +207,16 @@ async function updateDynamoDB(jobId, newBody, res)
             TableName: 'Jobs',
         };
         var result = await client.update(params).promise();
-        if(!result)
-        {
-            return res.status(404).json({error: `Object is not in DynamoDB`});
-        }
     }
     catch(error)
     {
         console.log(error);
-        return res.status(500).json({error: 'Could not read dynamoDB'});
     }
 }
 
 async function queryDynamoDB(jobId, res)
 {
     try{
-        console.log(jobId);
         var params = {
             KeyConditionExpression: 'jobId = :jobId',
             ExpressionAttributeValues: {
@@ -242,17 +225,11 @@ async function queryDynamoDB(jobId, res)
             TableName: 'Jobs'
         };
         var result = await client.query(params).promise();
-        if(!result)
-        {
-            return res.status(500).json({error: `${jobId} is not in the map.`});
-        }
-       // console.log(result);
         return JSON.parse(JSON.stringify(result)).Items[0].metadata;
     }
     catch(error)
     {
         console.log(error);
-        return res.status(500).json({error: 'Could not read dynamoDB'});
     }
 }
 
