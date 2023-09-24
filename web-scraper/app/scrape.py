@@ -13,7 +13,7 @@ def scrape(start_url: str | List[str], start=False):
 
     return_object = {}
 
-    return_object["title"] = soup.title.string
+    return_object["title"] = soup.find('title').string
     return_object["contents"] = []
     return_object["url"] = start_url
 
@@ -52,7 +52,7 @@ def crawl(start_url: str):
     if start_url.endswith(".html"):
         base_url = "/".join(start_url.split("/")[:-1])
     else:
-        raise ValueError(f"start_url ({start_url}) must end with .html")
+        base_url = start_url
 
     all_objects = []
     return_objects, links = scrape(start_url, start=True)
@@ -81,12 +81,12 @@ def background_scrape(base_url: str, job_id: str):
         Key=key
     )
 
+    print(f"Saving to s3://{bucket}/{key}")
     response = requests.post(
-        "http://192.168.199.72:5000/save",
-        json={"bucket_name": bucket, "file_path": key, "job_id": job_id},
+        f"http://192.168.199.72:5000/save?job_id={job_id}",
+        json={"bucket_name": bucket, "file_path": key},
     )
-    print(response.status_code)
-    print(response.content)
+    print(f"Cody's API responsed with status code {response.status_code} with message {response.text}")
 
     payload = {
         "base_url": base_url,
