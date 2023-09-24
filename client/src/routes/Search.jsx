@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { withAuthenticationRequired } from "@auth0/auth0-react";
 
@@ -8,6 +8,7 @@ function Search() {
   const [jobID, setJobID] = useState();
   const [results, setResults] = useState([]);
   const [message, setMessage] = useState("");
+  const state = useRef("");
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -28,17 +29,20 @@ function Search() {
         .then((response) => response.json())
         .then((data) => {
           console.log(data);
-          setJobID(data.jobId);
+          state.current = data.jobId;
           refetch();
         });
         
     }
   }
 
+
   const { data, error, loading, refetch } = useQuery({ queryKey: ["search"], queryFn: 
     async () => {
-      const response = await fetch(`http://192.168.199.97:5000/checkDocumentStatus?jobId=${jobID}`);
+      console.log("checking status of job" + state.current + "...")
+      const response = await fetch(`http://192.168.199.97:5000/checkDocumentStatus?jobId=${state.current}`);
       const data = await response.json();
+      console.log(data);
       if (data.status !== "Complete") {
         setMessage("Working on request...")
         throw new Error("Not complete");
@@ -65,14 +69,14 @@ function Search() {
       <h1 className="">Search</h1>
       <form onSubmit={handleSearch} className="flex flex-col gap-5">
         <input
-          className="h-10"
+          className="p-2"
           type="text"
           value={baseURL}
           onChange={(e) => setBaseURL(e.target.value)}
           placeholder="Base Docs URL"
         />
         <input
-          className="h-10"
+          className="p-2"
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -82,7 +86,7 @@ function Search() {
       </form>
       {results && results.map((result) => {
         return (
-          <div className="result">
+          <div className="text-left">
             <h3><a href={result.metadata.url}>{result.metadata.title}</a></h3>
             <p>{result.metadata.content}</p>
           </div>
