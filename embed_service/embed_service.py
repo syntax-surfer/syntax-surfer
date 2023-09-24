@@ -74,13 +74,14 @@ def parse_and_save(s3file: S3File, job_id: str):
     s3.download_file(s3file.bucket_name, s3file.file_path, "placeholder.json")
 
     file_contents = open("placeholder.json").read()
-    file_json = json.loads(file_contents)[0]
+    file_json_list = json.loads(file_contents)
 
-    embed(file_json)
+    for entry in file_json_list:
+        embed(entry)
 
     # todo, put the update to backend
     data = {
-        "base_url": file_json["base_url"],
+        "base_url": file_json_list[0]["base_url"],
         "origin": "embed",
         "content": "",
         "jobId": job_id,
