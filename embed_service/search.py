@@ -38,8 +38,8 @@ def check_index(base_url: str, response: Response):
     return json.dumps(matches)
 
 
-@app.get("/query/{base_url}/{query}")
-def query_index(base_url: str, query: str):
+@app.post("/query/")
+def query_index(base_url: str = "", query: str = ""):
     results = pinecone_index.query(
         vector=util.convert_to_vector(query),
         filter={
@@ -47,6 +47,6 @@ def query_index(base_url: str, query: str):
         },
         top_k=8,
         include_metadata=True
-    )
+    ).to_dict()["matches"]
 
-    return results
+    return json.dumps(results)
