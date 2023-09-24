@@ -1,17 +1,26 @@
 const express = require('express');
 const axios = require('axios');
 const bodyParser = require('body-parser');
+const AWS = require('aws-sdk');
+const {v4: uuidv4} = require('uuid');
+require('dotenv').config();
 const app = express();
 const port = 5000;
+
 const cors = require('cors');
 app.use(bodyParser.json());
 const map = new Map();
 
-//Default Gateway
-app.get('/', (req, res) =>
-{
-    res.send("HackMidWest");
+ACCESS_KEY = process.env.accessKeyId;
+SECRET_ACCESS_KEY = process.env.secretAccessKey;
+SESSION_TOKEN = process.env.sessionToken;
+
+const client = new AWS.DynamoDB.DocumentClient({region: 'us-east-1',
+accessKeyId: ACCESS_KEY,
+secretAccessKey: SECRET_ACCESS_KEY,
+sessionToken: SESSION_TOKEN
 });
+const tableName = 'Jobs';
 
 app.use(cors({
     origin: "*"
@@ -27,53 +36,71 @@ app.post('/search', async (req, res) =>
     {
         return res.status(400).json({error: 'Domain and query are required parameters.'});
     }
-    console.log(baseURL + " " + query);
 
-    map.set(req.query.baseURL, 
-        {
-            'base_url': `${baseURL}`,
-            'query': `${query}`,
-            'status': 'pending',
-            'message': '',
-            'origin': '',
-            'content': '',
-        });
+    const metadata = {
+        'base_url': `${baseURL}`,
+        'query': `${query}`,
+        'status': 'pending',
+        'message': '',
+        'origin': '',
+        'content': '',
+    }
+
+    //Generates a unique ID.
+    const jobId = uuidv4();
+
+    var params = {
+        TableName: 'Jobs',
+        Item: {
+            "jobId": jobId,
+            "metadata": metadata,
+        }
+    };
+   
+    await client.put(params, (err, data) => {
+        if (err) {
+            console.error("Unable to add item.");
+        }
+    });
+
 
     const statusCode = await checkDatabase(query, baseURL);
+    console.log('Check database status code: ' + statusCode);
     if(statusCode === 200) //Already in Database.
     {
-        startEmbed(query, baseURL);
-        return res.status(200).json({message: "Success"});
+        console.log("DB already has this URL");
+        startEmbed(query, baseURL, jobId, res);
+        return res.status(200).json({jobId: `${jobId}`});
     }
 
     //Need to webscrape the data.
     try {
-        const data = await scrapeContent(baseURL);
-        if(data.status !== '200')
+        console.log("Sending to webscraper");
+        const data = await scrapeContent(baseURL, jobId);
+        console.log(data);
+        if(data !== 200)
         {
-            return res.status(data.status).json({error: `Web Scraper returned ${data.status}`});
+            return res.status(data).json({error: `Web Scraper returned ${data}`});
         }
     }
     catch(error){
         console.log(error);
     }
-    return res.status(200).json({message: "Success"});
+    return res.status(200).json({jobId: `${jobId}`});
 });
 
 //Check what the status of a job is.
-app.get('/getUpdate', async (req, res) =>
+app.get('/checkDocumentStatus', async (req, res) =>
 {
-    const baseURL = req.query.baseURL;
-    if(!baseURL)
+ const jobId = req.query.jobId;
+    if(!jobId)
     {
-        return res.status(400).json({error: 'Request must contain baseURL.'});
-    }
-    if(!map.get(baseURL))
-    {
-        return res.status(500).json({error: `baseURL is not in the map.`});
+        return res.status(400).json({error: 'Request must contain jobId.'});
     }
 
-    return res.status(200).json(map.get(baseURL));
+    var result = await queryDynamoDB(jobId,res);
+    console.log(result);
+    return res.status(200).json(result);
 });
 
 //Update the map with status
@@ -89,47 +116,49 @@ app.put('/update', async (req, res) =>
         return res.status(400).json({ error: 'Invalid JSON format. Request body must be an object.' });
     }
     
-    const requiredProperties = ['base_url', 'status', 'message', 'content', 'query', 'origin'];
+    const requiredProperties = ['base_url', 'status', 'message', 'content', 'query', 'origin', 'jobId'];
 
     for (const prop of requiredProperties) { //Ensure Request has the correct properties.
         if (!(prop in requestBody)) {
             return res.status(400).json({ error: `Missing property: "${prop}"` });
         }
     }
-
-    
-
-    const base_url = requestBody.base_url;
-    if(!map.get(base_url))
-    {
-        return res.status(404).json({error: `Object is not in the map`});
-    }
-    const query = map.get(base_url).query;
-
-
-    map.set(base_url, 
-        {
-            'base_url': `${base_url}`,
-            'query': `${query}`,
+    const jobId = requestBody.jobId;
+    const oldBody = await queryDynamoDB(jobId,res);
+    console.log(oldBody.query);
+    console.log(oldBody.base_url);
+    try{
+        const newBody = {
+            'base_url': `${oldBody.base_url}`,
+            'query': `${oldBody.query}`,
             'status': `${requestBody.status}`,
             'message': `${requestBody.message}`,
             'origin': `${requestBody.origin}`,
             'content': `${requestBody.content}`,
-        });
-
-    if(requestBody.origin === 'embed'){ //Sent from webscraper.
-        //Create GET request to EMBED.
-        startEmbed(query, base_url);
+        };
+        await updateDynamoDB(jobId, newBody, res);
+        if(requestBody.origin === 'embed')
+        {
+            console.log("Embed ready, sending data over to cody");
+            await startEmbed(newBody.query, newBody.base_url, jobId, res);
+            
+            
+        }
     }
-    
-    return res.status(200).json({ message: 'Update successful' });
+    catch(error)
+    {
+        console.log(error);
+        return res.status(500).json({error: 'Could not read dynamoDB'});
+    }
 });
 
-async function scrapeContent(baseURL){
+async function scrapeContent(baseURL, jobId){
     try{
         const response = await axios.post(`http://192.168.199.42:8000/web-scraper`, 
         {
-            'url': `${baseURL}`
+            'url': `${baseURL}`,
+            'jobId': `${jobId}`,
+
         });
         return response.status;
     }
@@ -152,22 +181,22 @@ async function checkDatabase(query, url)
     }
 }
 
-async function startEmbed(query, url)
+async function startEmbed(query, url, jobId, res)
 {
     const endpoint = `http://192.168.199.72:5000/query/?base_url=${url}&query=${query}`;
     try
     {
         const response = await axios.post(endpoint);
         console.log(response.data);
-        map.set(url, 
-            {
-                'base_url': `${url}`,
-                'query': `${query}`,
-                'status': 'Complete',
-                'message': `Success`,
-                'origin': `Embed`,
-                'content': `${response.data}`,
-            });
+        const newBody = {
+            'base_url': `${url}`,
+            'query': `${query}`,
+            'status': 'Complete',
+            'message': `Success`,
+            'origin': `Embed`,
+            'content': `${response.data}`,
+        };
+        await updateDynamoDB(jobId, newBody, res);
     }   
     catch(error)
     {
@@ -175,6 +204,55 @@ async function startEmbed(query, url)
     }
 }
 
+async function updateDynamoDB(jobId, newBody, res)
+{
+    try{
+        var params = {
+            Key: {
+                jobId: jobId
+            },
+            UpdateExpression: 'set metadata = :metadata',
+            ExpressionAttributeValues: {
+                ':metadata': newBody
+            },
+            TableName: 'Jobs',
+        };
+        var result = await client.update(params).promise();
+        if(!result)
+        {
+            return res.status(404).json({error: `Object is not in DynamoDB`});
+        }
+    }
+    catch(error)
+    {
+        console.log(error);
+        return res.status(500).json({error: 'Could not read dynamoDB'});
+    }
+}
+
+async function queryDynamoDB(jobId, res)
+{
+    try{
+        var params = {
+            KeyConditionExpression: 'jobId = :jobId',
+            ExpressionAttributeValues: {
+                ':jobId': jobId,
+            },
+            TableName: 'Jobs'
+        };
+        var result = await client.query(params).promise();
+        if(!result)
+        {
+            return res.status(500).json({error: `${jobId} is not in the map.`});
+        }
+        return JSON.stringify(result);
+    }
+    catch(error)
+    {
+        console.log(error);
+        return res.status(500).json({error: 'Could not read dynamoDB'});
+    }
+}
 
 app.listen(port, ()=>
 {
