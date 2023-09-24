@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { withAuthenticationRequired } from "@auth0/auth0-react";
 
 function Search() {
   const [baseURL, setBaseURL] = useState("");
