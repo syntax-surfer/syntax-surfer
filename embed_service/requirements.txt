@@ -3,3 +3,4 @@ pydantic
 fastapi
 boto3
 sentence-transformers
+uvicorn
