@@ -99,7 +99,6 @@ def upsert(entry_json, content_vectors, contents):
             })
         ])
         print(f"content {new_uuid} upserted")
-    
 
 
 def test_embed_file(filename):
