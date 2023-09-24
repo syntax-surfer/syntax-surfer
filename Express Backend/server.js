@@ -160,8 +160,10 @@ async function startEmbed()
 }
 
 
-app.listen(port, ()=>
+const server = app.listen(port, ()=>
 {
+    const { address, port } = server.address();
     console.log(`Server is running on port ${port}`);
 });
 
+module.exports = server; // Export the Express app instance
