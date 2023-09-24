@@ -92,8 +92,8 @@ app.post('/search', async (req, res) =>
 //Check what the status of a job is.
 app.get('/checkDocumentStatus', async (req, res) =>
 {
- const jobId = req.query.jobId;
-    if(!jobId)
+    const jobId = req.query.jobId;
+    if(!jobId || jobId === undefined)
     {
         return res.status(400).json({error: 'Request must contain jobId.'});
     }
@@ -233,6 +233,7 @@ async function updateDynamoDB(jobId, newBody, res)
 async function queryDynamoDB(jobId, res)
 {
     try{
+        console.log(jobId);
         var params = {
             KeyConditionExpression: 'jobId = :jobId',
             ExpressionAttributeValues: {
@@ -245,7 +246,8 @@ async function queryDynamoDB(jobId, res)
         {
             return res.status(500).json({error: `${jobId} is not in the map.`});
         }
-        return JSON.stringify(result);
+       // console.log(result);
+        return JSON.parse(JSON.stringify(result)).Items[0].metadata);
     }
     catch(error)
     {
