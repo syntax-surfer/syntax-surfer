@@ -46,6 +46,8 @@ def query_index(base_url: str = "", query: str = ""):
         },
         top_k=8,
         include_metadata=True
-    ).to_dict()["matches"]
+    ).to_dict()
+
+    del results["namespace"]
 
     return json.dumps(results)
