@@ -26,7 +26,7 @@ def check_index(base_url: str, response: Response):
         filter={
             "base_url": {"$eq": base_url}
         },
-        top_k=5,
+        top_k=1,
         include_metadata=True
     )
 
@@ -36,3 +36,17 @@ def check_index(base_url: str, response: Response):
         response.status_code = status.HTTP_204_NO_CONTENT
 
     return json.dumps(matches)
+
+
+@app.get("/query/{base_url}/{query}")
+def query_index(base_url: str, query: str):
+    results = pinecone_index.query(
+        vector=util.convert_to_vector(query),
+        filter={
+            "base_url": {"$eq": base_url}
+        },
+        top_k=8,
+        include_metadata=True
+    )
+
+    return results
