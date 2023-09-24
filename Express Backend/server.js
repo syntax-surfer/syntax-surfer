@@ -132,6 +132,8 @@ app.put('/update', async (req, res) =>
         if(requestBody.origin === 'embed')
         {
             startEmbed(newBody.query, newBody.base_url, jobId, res);
+            return res.status(200).json({status:"success"});
+
         }
     }
     catch(error)
@@ -185,7 +187,7 @@ async function startEmbed(query, url, jobId, res)
             'content': `${response.data}`,
         };
         await updateDynamoDB(jobId, newBody, res);
-        return res.status(200).json({status:"success"});
+        
     }   
     catch(error)
     {
