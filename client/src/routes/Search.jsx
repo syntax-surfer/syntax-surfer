@@ -1,7 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
+import { withAuthenticationRequired } from "@auth0/auth0-react";
 
 function Search() {
   const [baseURL, setBaseURL] = useState("");
@@ -9,14 +8,6 @@ function Search() {
   const [jobID, setJobID] = useState();
   const [results, setResults] = useState([]);
   const [message, setMessage] = useState("");
-  const { user } = useAuth0();
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    if (!user) {
-      navigate("/");
-    }
-  }, [user]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -103,4 +94,4 @@ function Search() {
   );
 }
 
-export default withAuthenticationRequired(Search);
+export default Search;//withAuthenticationRequired(Search);
