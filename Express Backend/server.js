@@ -3,6 +3,7 @@ const axios = require('axios');
 const bodyParser = require('body-parser');
 const app = express();
 const port = 5000;
+const cors = require('cors');
 app.use(bodyParser.json());
 const map = new Map();
 
@@ -11,6 +12,10 @@ app.get('/', (req, res) =>
 {
     res.send("HackMidWest");
 });
+
+app.use(cors({
+    origin: "*"
+}));
 
 //Creates a new job and sends it to respective services.
 app.post('/search', async (req, res) =>
@@ -34,25 +39,14 @@ app.post('/search', async (req, res) =>
             'content': '',
         });
 
-    //Call embed api to see if the URL is in database.
-    //IF in database
-    //Send query and url to embed API
-    //IF NOT in Database
-    //Send to Scraper API
-    //Wait for Scraper API to put data into map.
-
-
-    //Map PK = domain
-    //  values = {
-     /*
-        status: pending,
-        message: DEFAULT_MESSAGE,
-        content: "",
-        update_time: TIME
+    const statusCode = await checkDatabase(query, baseURL);
+    if(statusCode === 200) //Already in Database.
+    {
+        startEmbed(query, baseURL);
+        return res.status(200).json({message: "Success"});
     }
-     */
-    //
 
+    //Need to webscrape the data.
     try {
         const data = await scrapeContent(baseURL);
         if(data.status !== '200')
@@ -145,13 +139,35 @@ async function scrapeContent(baseURL){
     }
 }
 
-//
-async function startEmbed()
+async function checkDatabase(query, url)
 {
+    const endpoint = `http://192.168.199.72:5000/check/?base_url=${url}`;
+    try{
+        const response = await axios.get(endpoint);
+        return response.status;
+    }
+    catch(error)
+    {
+        throw error;
+    }
+}
+
+async function startEmbed(query, url)
+{
+    const endpoint = `http://192.168.199.72:5000/query/?base_url=${url}&query=${query}`;
     try
     {
-        //Call Embed API.
-
+        const response = await axios.post(endpoint);
+        console.log(response.data);
+        map.set(url, 
+            {
+                'base_url': `${url}`,
+                'query': `${query}`,
+                'status': 'Complete',
+                'message': `Success`,
+                'origin': `Embed`,
+                'content': `${response.data}`,
+            });
     }   
     catch(error)
     {
