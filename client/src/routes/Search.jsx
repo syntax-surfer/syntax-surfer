@@ -98,4 +98,4 @@ function Search() {
   );
 }
 
-export default Search;//withAuthenticationRequired(Search);
+export default withAuthenticationRequired(Search);
