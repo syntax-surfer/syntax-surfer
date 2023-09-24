@@ -3,6 +3,7 @@ import json
 import os
 import pinecone
 import pydantic
+import requests
 import util
 import uuid
 from fastapi import FastAPI, Response, status
@@ -61,22 +62,44 @@ def query_index(base_url: str = "", query: str = ""):
 
     del results["namespace"]
 
+    print(results)
     return json.dumps(results)
 
 
 @app.post("/save/")
-def parse_and_save(s3file: S3File):
+def parse_and_save(s3file: S3File, job_id: str):
     print("POST /save/ hit!")
+    print(job_id)
 
     s3.download_file(s3file.bucket_name, s3file.file_path, "placeholder.json")
 
     file_contents = open("placeholder.json").read()
-    embed(file_contents)
+    file_json = json.loads(file_contents)[0]
+
+    embed(file_json)
+
+    # todo, put the update to backend
+    data = {
+        "base_url": file_json["base_url"],
+        "origin": "embed",
+        "content": "",
+        "jobId": job_id,
+        "status": "pending",
+        "message": "URL finished embedding.",
+        "query": ""
+    }
+
+    print("Hitting backend PUT")
+    put = requests.put(
+        "http://192.168.199.97:5000/update", 
+        json=data
+    )
+    print(put.text)
 
 
-def embed(queue_entry):
+def embed(entry_json):
     # Parse JSON obj
-    entry_json = json.loads(queue_entry)[0]
+    # entry_json = json.loads(queue_entry)[0]
     contents = entry_json["contents"]
 
     # Convert to vectors
