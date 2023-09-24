@@ -2,11 +2,12 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-export default function Search() {
+function Search() {
   const [baseURL, setBaseURL] = useState("");
   const [query, setQuery] = useState("");
-  const [formattedDetails, setFormattedDetails] = useState({});
+  const [jobID, setJobID] = useState();
   const [results, setResults] = useState([]);
+  const [message, setMessage] = useState("");
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -27,27 +28,26 @@ export default function Search() {
         .then((response) => response.json())
         .then((data) => {
           console.log(data);
-          setFormattedDetails({
-            baseURL: encodedBaseURL,
-            query: encodedQuery,
-          });
+          setJobID(data.jobId);
+          refetch();
         });
         
     }
   }
 
-  const { data, error, loading } = useQuery({ queryKey: ["search"], queryFn: 
+  const { data, error, loading, refetch } = useQuery({ queryKey: ["search"], queryFn: 
     async () => {
-      const response = await fetch(`http://192.168.199.97:5000/checkDocumentStatus?baseURL=${formattedDetails.baseURL}`);
+      const response = await fetch(`http://192.168.199.97:5000/checkDocumentStatus?jobId=${jobID}`);
       const data = await response.json();
       if (data.status !== "Complete") {
+        setMessage("Working on request...")
         throw new Error("Not complete");
       }
       return data;
     },
     retryDelay: 10000,
     retry: 40,
-    enabled: !!formattedDetails.baseURL && !!formattedDetails.query,
+    enabled: !!jobID,
   });
 
   useEffect(() => {
@@ -55,6 +55,7 @@ export default function Search() {
       console.log(data);
       const content = JSON.parse(data.content);
       const results = content.matches;
+      setMessage("");
       setResults(results);
     }
   }, [data]);
@@ -88,6 +89,9 @@ export default function Search() {
         );
       })
       }
+      {message && <p>{message}</p>}
     </div>
   );
 }
+
+export default withAuthenticationRequired(Search);
