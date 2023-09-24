@@ -69,7 +69,7 @@ def crawl(start_url: str):
     return all_objects
 
 
-def background_scrape(base_url: str):
+def background_scrape(base_url: str, job_id: str):
     objects = crawl(base_url)
     s3 = boto3.client("s3")
 
@@ -83,7 +83,7 @@ def background_scrape(base_url: str):
 
     response = requests.post(
         "http://192.168.199.72:5000/save",
-        json={"bucket_name": bucket, "file_path": key},
+        json={"bucket_name": bucket, "file_path": key, "job_id": job_id},
     )
     print(response.status_code)
     print(response.content)
@@ -95,6 +95,7 @@ def background_scrape(base_url: str):
         "message": "from scraper",
         "content": "",
         "query": "",
+        "job_id": job_id
     }
     requests.put(
         "http://192.168.199.97:5000/update",
