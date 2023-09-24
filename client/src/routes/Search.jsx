@@ -66,7 +66,7 @@ function Search() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="">Search</h1>
+      <h1 className="">Syntax Surfer</h1>
       <form onSubmit={handleSearch} className="flex flex-col gap-5">
         <input
           className="p-2"
