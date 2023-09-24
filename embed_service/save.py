@@ -11,7 +11,7 @@ pinecone.init(api_key=API_KEY, environment="gcp-starter")
 pinecone_index = pinecone.Index("syntax-surfer")
 
 
-def lambda_entry(queue_entry):
+def lambda_entry(queue_entry, _):
     # Parse JSON obj
     entry_json = json.loads(queue_entry)
 
