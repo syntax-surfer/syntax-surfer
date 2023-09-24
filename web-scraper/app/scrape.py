@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from pprint import pprint
 import json
 import boto3
@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def scrape(start_url: str | List[str], start=False):
+def scrape(start_url: Union[str, List[str]], start=False):
     response = requests.get(start_url)
     soup = BeautifulSoup(response.content, "html.parser")
 
