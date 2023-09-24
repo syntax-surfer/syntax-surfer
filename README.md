@@ -32,5 +32,8 @@ Syntax Surfer is a search engine with the intent of helping developers search th
 
 <br /><br />
 
+Syntax Surfer Architecture
+![alt text](https://github.com/syntax-surfer/syntax-surfer/blob/master/SyntaxSurferArchitecture.jpg?raw=true)
+
 Data Flow and Sequence
 ![alt text](https://github.com/syntax-surfer/syntax-surfer/blob/master/SyntaxSurferDataFlow.jpg?raw=true)
