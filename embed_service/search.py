@@ -35,4 +35,4 @@ def check_index(base_url: str, response: Response):
     if len(matches) == 0:
         response.status_code = status.HTTP_204_NO_CONTENT
 
-    return json.dumps(results.to_dict()["matches"])
+    return json.dumps(matches)
