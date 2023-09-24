@@ -1,12 +1,9 @@
-import { Link } from "react-router-dom";
+import LoginButton from "../components/LoginButton";
 
 export default function Login() {
   return (
     <div>
-      <h1 className="">Login</h1>
-      <p>
-        <Link to="/dashboard">Dashboard</Link>
-      </p>
+      <LoginButton /> 
     </div>
   );
 }
