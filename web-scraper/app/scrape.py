@@ -3,6 +3,7 @@ from typing import Dict, List
 import requests
 from bs4 import BeautifulSoup
 
+
 def _get_links(soup: BeautifulSoup, url: str) -> List:
     """Get all links from soup that are from the same url
 
@@ -14,13 +15,13 @@ def _get_links(soup: BeautifulSoup, url: str) -> List:
     """
     links = []
 
-    for link in soup.find_all('a'):
-        if link.get('href') is not None:
-            if link.get('href').startswith(url):
-                links.append(link.get('href'))
+    for link in soup.find_all("a"):
+        if link.get("href") is not None:
+            if link.get("href").startswith(url):
+                links.append(link.get("href"))
 
     return links
-    
+
 
 def scrape_base_page(url: str) -> Dict:
     """Scrape the given URL and return the title."""
@@ -29,16 +30,29 @@ def scrape_base_page(url: str) -> Dict:
 
     return_object = {}
 
-    return_object['title'] = soup.title.string
-    return_object['contents'] = []
-    return_object['links'] = _get_links(soup, url)
+    return_object["title"] = soup.title.string
+    return_object["contents"] = []
+    return_object["links"] = _get_links(soup, url)
 
-    paragraphs = soup.find_all('p')
+    paragraphs = soup.find_all("p")
 
     for paragraph in paragraphs:
-        return_object['contents'].append(paragraph.get_text())
+        return_object["contents"].append(paragraph.get_text())
 
     return return_object
 
-def background_scrape():
-    pass
+
+def background_scrape(base_url: str):
+    payload = {
+        "base_url": base_url,
+        "status": "Pending",
+        "origin": "scraper",
+        "message": "from scraper",
+        "content": "",
+        "query": "",
+    }
+    requests.put(
+        "http://192.168.199.97:5000/update",
+        json=payload,
+        headers={"Content-Type": "application/json"},
+    )
