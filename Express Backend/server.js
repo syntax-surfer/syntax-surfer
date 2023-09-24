@@ -247,7 +247,7 @@ async function queryDynamoDB(jobId, res)
             return res.status(500).json({error: `${jobId} is not in the map.`});
         }
        // console.log(result);
-        return JSON.parse(JSON.stringify(result)).Items[0].metadata);
+        return JSON.parse(JSON.stringify(result)).Items[0].metadata;
     }
     catch(error)
     {
