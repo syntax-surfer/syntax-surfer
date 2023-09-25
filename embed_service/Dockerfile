@@ -11,6 +11,6 @@ COPY util.py .
 COPY embed_service.py .
 
 # Expose HTTPS port
-EXPOSE 443
+EXPOSE 8080
 
 CMD ["uvicorn", "embed_service:app", "--host", "0.0.0.0", "--port", "8080"]
