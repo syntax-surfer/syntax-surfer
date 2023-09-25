@@ -6,3 +6,4 @@ services:
     build:
       use: Dockerfile
       context: .
+    routes: /.*:8080
