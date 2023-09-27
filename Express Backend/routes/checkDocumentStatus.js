@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { queryDynamoDB } = require('../util');
+const { queryDynamoDB, deleteDynamoDB } = require('../util');
 
 router.get('/', async (req, res) =>
 {
@@ -12,6 +12,7 @@ router.get('/', async (req, res) =>
 
     try{
         const result = await queryDynamoDB(jobId,res);
+        await deleteDynamoDB(jobId);
         return res.status(200).json(result);
     }
     catch(error)

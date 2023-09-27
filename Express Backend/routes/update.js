@@ -26,7 +26,7 @@ router.put('/', async (req, res) =>
     
     try{
 
-        const oldBody = await queryDynamoDB(jobId,res);
+        const oldBody = await queryDynamoDB(jobId);
         const newBody = {
             'base_url': `${oldBody.base_url}`,
             'query': `${oldBody.query}`,
@@ -35,10 +35,10 @@ router.put('/', async (req, res) =>
             'origin': `${requestBody.origin}`,
             'content': `${requestBody.content}`,
         };
-        await updateDynamoDB(jobId, newBody, res);
+        await updateDynamoDB(jobId, newBody);
         if(requestBody.origin === 'embed')
         {
-            startEmbed(newBody.query, newBody.base_url, jobId, res);
+            startEmbed(newBody.query, newBody.base_url, jobId);
             return res.status(200).json({status:"success"});
         }
     }
