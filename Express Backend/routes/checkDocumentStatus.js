@@ -11,8 +11,18 @@ router.get('/', async (req, res) =>
     }
 
     try{
-        const result = await queryDynamoDB(jobId,res);
-        await deleteDynamoDB(jobId);
+        const result = await queryDynamoDB(jobId);
+        console.log(result);
+        if(!result)
+        {
+            return res.status(400).json({error: `${jobId} was not found in the Database`});
+        }
+        
+        if(result.status === 'Complete')
+        {
+            console.log('is complete deleting');
+            await deleteDynamoDB(jobId);
+        }
         return res.status(200).json(result);
     }
     catch(error)

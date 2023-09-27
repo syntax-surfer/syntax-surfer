@@ -25,7 +25,6 @@ router.put('/', async (req, res) =>
     const jobId = requestBody.jobId;
     
     try{
-
         const oldBody = await queryDynamoDB(jobId);
         const newBody = {
             'base_url': `${oldBody.base_url}`,

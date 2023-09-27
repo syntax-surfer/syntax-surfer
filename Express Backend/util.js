@@ -1,8 +1,6 @@
 const axios = require('axios');
-//const AWS   = require('aws-sdk');
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, DeleteCommand, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
-
 
 require('dotenv').config();
 ACCESS_KEY        = process.env.ACCESS_KEY_ID;
@@ -20,6 +18,7 @@ credentials: {
 });
 const docClient = DynamoDBDocumentClient.from(client);
 
+
 async function updateDynamoDB(jobId, newBody)
 {
     try{
@@ -33,7 +32,7 @@ async function updateDynamoDB(jobId, newBody)
                 ':metadata': newBody,
             },
         });
-        const result = await docClient.send(command);
+        await docClient.send(command);
     }
     catch(error){
         console.log(error);
@@ -49,9 +48,13 @@ async function queryDynamoDB(jobId)
                 jobId: jobId,
             },
         });
-
+        
         const result = await docClient.send(command);
-        return JSON.parse(JSON.stringify(result)).Item.metadata;
+        if(!result.Item)
+        {
+            return null;
+        }
+       return JSON.parse(JSON.stringify(result)).Item.metadata;
     }
     catch(error){
         console.log(error);
