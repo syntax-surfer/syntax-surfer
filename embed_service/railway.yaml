@@ -1,9 +1,0 @@
-name: EmbeddingService
-services:
-  - name: web
-    type: http
-    env: python
-    build:
-      use: Dockerfile
-      context: .
-    routes: /.*:8080
